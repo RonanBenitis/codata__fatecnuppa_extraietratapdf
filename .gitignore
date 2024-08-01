@@ -1,0 +1,6 @@
+__pycache__
+
+# Input and output
+data/processed/*
+data/raw/pdf/*
+data/raw/xlsx/*
