@@ -1,7 +1,9 @@
 ![Static Badge](https://img.shields.io/badge/status-released-brightgreen)
-![Static Badge](https://img.shields.io/badge/version-3-brightgreen)
+![Static Badge](https://img.shields.io/badge/version-1-brightgreen)
 
 # EXTRAÇÃO E PRÉ-PROCESSAMENTO DE TABELAS - FATEC NUPPA
+
+## Sobre o programa
 Este programa destina-se à "raspagem" dos [boletins semanais do Núcleo de Pesquisas em Preços Agrícolas (NUPPA)](https://www.fatecmogidascruzes.com.br/admin/workGroups/view/NUPPA) para captura e estruturação da tabela e captura de dados desejados.
 
 Em linhas gerais, o programa captura a tabela e o texto do PDF - através de bibliotecas específicas Python - tratando e organizando os dados obtidos - através de regex - e os estrutura em um novo DataFrame.
