@@ -1,6 +1,9 @@
 import functions
 from pathlib import Path
 
+# inicializa debugger ipdb em caso de exceção
+functions.debugger
+
 dir_origem = Path.cwd() / 'data' / 'raw' / 'pdf'
 dir_destino = Path.cwd() / 'data'/ 'processed'
 

@@ -8,19 +8,22 @@ from functions import getboletimandcoleta
 col_order = ['PRODUTO', 'UNIDADE MEDIDA', 'COMUM', 'MINIMO', 'MAXIMO',
              'MEDIA', 'MEDIANA', 'COLETA']
 
-def filtra_produto(cell_value):
-    lista_de_nomes = ['GRUPO', 'Comum Mínimo Máximo', 'Produto', 'Mediana',
-                      'NaN', 'NAN', 'nan']
-    cell_value = str(cell_value)
+def series_filtrada(series_a_filtrar):
+    def filtro_booleano(cell_value):
+        lista_de_nomes = ['GRUPO', 'Comum Mínimo Máximo', 'Produto', 'Mediana',
+                        'NaN', 'NAN', 'nan']
+        cell_value = str(cell_value)
 
-    # NOTE
-    # Any: Percorre uma lista booleana. Se encontrar algum verdadeiro
-    # retorna verdadeiro, se tudo for falso, retorna falso.
-    # Ou seja, criamos uma lista de verdadeiro/falso com lista_de_nomes
-    # e se a celula der verdadeira em algum nome, retorna verdadeiro.
-    # Isso evita repetir 'string' in cell_value toda hora.
-    return not (cell_value is np.nan or cell_value is None or
-        any(nome in cell_value for nome in lista_de_nomes))
+        # NOTE
+        # Any: Percorre uma lista booleana. Se encontrar algum verdadeiro
+        # retorna verdadeiro, se tudo for falso, retorna falso.
+        # Ou seja, criamos uma lista de verdadeiro/falso com lista_de_nomes
+        # e se a celula der verdadeira em algum nome, retorna verdadeiro.
+        # Isso evita repetir 'string' in cell_value toda hora.
+        return not (cell_value is np.nan or cell_value is None or
+            any(nome in cell_value for nome in lista_de_nomes))
+
+    return series_a_filtrar[series_a_filtrar.apply(filtro_booleano)].reset_index(drop=True)
 
 def estrutura_tabela_pdf(pdf_path):
     print(f'Iniciando estruturação de {pdf_path.name}')
@@ -51,13 +54,11 @@ def estrutura_tabela_pdf(pdf_path):
                 df_pdf = df_pdf.drop(col, axis='columns')
 
         # >>> COLUNA "PRODUTO"
-        filtro_col_produto = df_pdf.iloc[:,0].apply(filtra_produto)
-        df_model['PRODUTO'] = df_pdf.iloc[:,0][filtro_col_produto].reset_index(drop=True)
+        df_model['PRODUTO'] = series_filtrada(df_pdf.iloc[:,0])
 
         # >>> COLUNA "UNIDADE MEDIDA" "COMUM" "MINIMO" "MAXIMO" "MEDIA"
-        filtro_col_medida = df_pdf.iloc[:,1].apply(filtra_produto)
-        col_medida_filtrado = df_pdf.iloc[:,1][filtro_col_medida]
-        result = col_medida_filtrado.apply(celltocol.cell_to_col)
+        col_medida_filtrado = series_filtrada(df_pdf.iloc[:,1])
+        result = celltocol.cell_to_col(df_model['PRODUTO'], col_medida_filtrado)
         df_um, df_comum, df_minimo, df_maximo, df_media = zip(*result)
 
         df_model['UNIDADE MEDIDA'] = df_um
@@ -67,9 +68,7 @@ def estrutura_tabela_pdf(pdf_path):
         df_model['MEDIA'] = df_media
         
         # >>> COLUNA "MEDIANA"
-        filtro_col_mediana = df_pdf.iloc[:,2].apply(filtra_produto)
-        df_model['MEDIANA'] = df_pdf.iloc[:,2][filtro_col_mediana].reset_index(drop=True)
-
+        df_model['MEDIANA'] = series_filtrada(df_pdf.iloc[:,2])
         # >>> COLUNA "COLETA"
         df_model['COLETA'] = data_coleta
 
