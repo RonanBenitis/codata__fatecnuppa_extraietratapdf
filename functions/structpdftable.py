@@ -3,15 +3,15 @@ import pandas as pd
 import tabula
 from pathlib import Path
 from functions import celltocol
-from functions import getboletimandcoleta
+from model.boletim import Boletim
 
 col_order = ['PRODUTO', 'UNIDADE MEDIDA', 'COMUM', 'MINIMO', 'MAXIMO',
              'MEDIA', 'MEDIANA', 'COLETA']
 
 def series_filtrada(series_a_filtrar):
     def filtro_booleano(cell_value):
-        lista_de_nomes = ['GRUPO', 'Comum Mínimo Máximo', 'Produto', 'Mediana',
-                        'NaN', 'NAN', 'nan']
+        lista_de_nomes = ['GRUPO', 'Grupo', 'Comum Mínimo Máximo', 'Produto',
+                          'Mediana', 'NaN', 'NAN', 'nan']
         cell_value = str(cell_value)
 
         # NOTE
@@ -25,17 +25,16 @@ def series_filtrada(series_a_filtrar):
 
     return series_a_filtrar[series_a_filtrar.apply(filtro_booleano)].reset_index(drop=True)
 
-def estrutura_tabela_pdf(pdf_path):
-    print(f'Iniciando estruturação de {pdf_path.name}')
-    boletim_num, data_coleta = getboletimandcoleta.get_boletim_and_coleta(pdf_path)
+def estrutura_tabela_pdf(boletim: Boletim) -> pd.DataFrame:
+    print(f'Iniciando estruturação do Boletim {boletim._numero}/{boletim._ano}')
     df_model = pd.DataFrame(columns=col_order)
-    dfs_pdf = tabula.read_pdf(pdf_path, pages='all', multiple_tables=True)
+    dfs_pdf = tabula.read_pdf(boletim._path, pages='all', multiple_tables=True)
 
     # Iterando pelas paginas (DataFrames)
     for df_pdf in dfs_pdf:
         # Cria um arquivo raw
         dir_raw_xlsx = Path.cwd() / 'data'/ 'raw' / 'xlsx'
-        df_pdf.to_excel(f'{dir_raw_xlsx}/raw_{boletim_num}-2022.xlsx', index=False)
+        df_pdf.to_excel(f'{dir_raw_xlsx}/raw_{boletim._numero}-2022.xlsx', index=False)
         
         # NOTE
         # Retira 'R$' pois houve um arquivo com bug onde
@@ -70,8 +69,8 @@ def estrutura_tabela_pdf(pdf_path):
         # >>> COLUNA "MEDIANA"
         df_model['MEDIANA'] = series_filtrada(df_pdf.iloc[:,2])
         # >>> COLUNA "COLETA"
-        df_model['COLETA'] = data_coleta
+        df_model['COLETA'] = f'{boletim._dia_pesquisa}/{boletim._mes_pesquisa}/{boletim._ano_pesquisa}'
 
-        print(f'Tratamento de {pdf_path.name} realizado!')
+        print(f'Tratamento de {boletim._numero} realizado!')
 
-        return boletim_num, df_model
+        return df_model
